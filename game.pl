@@ -12,7 +12,6 @@
 run_game(GameMap, PlayerPos) :-
     % 1. Desenha o mapa
     draw_map(GameMap),
-    
     % 2. Lê entrada do teclado
     write('Use W/A/S/D para mover | Q para sair: '),
     get_single_char(Code),

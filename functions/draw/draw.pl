@@ -3,7 +3,8 @@
 ]).
 
 /*
-  Desenho do mapa no terminal.
+Este módulo é responsável por renderizar um mapa do jogo em formato de texto no terminal. 
+Ele lê uma lista de coordenadas e tipos de blocos e constrói uma matriz de caracteres
 */
 
 tile_to_asset(indestructible, '█').
@@ -14,28 +15,28 @@ tile_to_asset(victory_portal, '⚑').
 tile_to_asset(_,              ' ').
 
 draw_map(GameMap) :-
-    write('\e[H\e[2J'),
-    
     findall(X, member(((X, _), _), GameMap), Xs),
     findall(Y, member(((_, Y), _), GameMap), Ys),
     max_list(Xs, MaxX),
     max_list(Ys, MaxY),
-    
-    draw_rows(0, MaxY, MaxX, GameMap).
+    build_rows(0, MaxY, MaxX, GameMap, CharCodes),
+    write('\e[H'),
+    format('~s', [CharCodes]),
+    flush_output.
 
-draw_rows(Y, MaxY, _, _) :- Y > MaxY, !.
-draw_rows(Y, MaxY, MaxX, GameMap) :-
-    draw_cols(0, MaxX, Y, GameMap),
-    nl,
+build_rows(Y, MaxY, _, _, []) :- Y > MaxY, !.
+build_rows(Y, MaxY, MaxX, GameMap, Codes) :-
+    build_cols(0, MaxX, Y, GameMap, RowCodes),
     NextY is Y + 1,
-    draw_rows(NextY, MaxY, MaxX, GameMap).
+    build_rows(NextY, MaxY, MaxX, GameMap, RestCodes),
+    append(RowCodes, [10 | RestCodes], Codes). % 10 é o ASCII para nova linha (\n)
 
-draw_cols(X, MaxX, _, _) :- X > MaxX, !.
-draw_cols(X, MaxX, Y, GameMap) :-
+build_cols(X, MaxX, _, _, []) :- X > MaxX, !.
+build_cols(X, MaxX, Y, GameMap, [CharCode | Rest]) :-
     (   member(((X, Y), Tile), GameMap)
     ->  tile_to_asset(Tile, Char)
     ;   Char = ' '
     ),
-    write(Char),
+    char_code(Char, CharCode),
     NextX is X + 1,
-    draw_cols(NextX, MaxX, Y, GameMap).
+    build_cols(NextX, MaxX, Y, GameMap, Rest).
