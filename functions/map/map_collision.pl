@@ -1,7 +1,8 @@
 :- module(map_collision, [
     is_empty/2,
     is_destructible/2,
-    is_indestructible/2
+    is_indestructible/2,
+    is_bomb/2
 ]).
 
 /*
@@ -18,3 +19,6 @@ is_destructible(Coord, GameMap) :-
 
 is_indestructible(Coord, GameMap) :-
     get_tile(Coord, GameMap, indestructible).
+
+is_bomb(Coord, GameMap) :-
+    get_tile(Coord, GameMap, bomb).

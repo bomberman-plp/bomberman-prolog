@@ -13,6 +13,7 @@ asset_to_tile('x', destructible) :- !.
 asset_to_tile('.', empty) :- !.
 asset_to_tile('1', player) :- !.
 asset_to_tile('2', victory_portal) :- !.
+asset_to_tile('b', bomb) :- !.
 asset_to_tile(_, empty).
 
 % Faz o carregamento do mapa a partir de um arquivo. retorna o mapa, a posicao do player e a posicao do portal

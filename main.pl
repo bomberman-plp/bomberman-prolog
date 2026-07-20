@@ -13,4 +13,4 @@ main(FilePath) :-
     write('\e[2J\e[H\e[?25l'), 
     flush_output,
     load_map(FilePath, GameMap, PlayerPos, _PortalPos),
-    run_game(GameMap, PlayerPos).
+    run_game(GameMap, PlayerPos, none).
