@@ -1,11 +1,6 @@
 :- module(draw, [
-    draw_map/2
+    draw_map/3
 ]).
-
-/*
-Este módulo é responsável por renderizar um mapa do jogo em formato de texto no terminal. 
-Ele lê uma lista de coordenadas e tipos de blocos e constrói uma matriz de caracteres
-*/
 
 tile_to_asset(indestructible, '█').
 tile_to_asset(destructible,   '▒').
@@ -15,64 +10,43 @@ tile_to_asset(bomb,           '●').
 tile_to_asset(victory_portal, '⚑').
 tile_to_asset(_,              ' ').
 
-draw_map(GameMap, BombState) :-
+draw_map(GameMap, PlayerPos, BombState) :-
     findall(X, member(((X, _), _), GameMap), Xs),
     findall(Y, member(((_, Y), _), GameMap), Ys),
     max_list(Xs, MaxX),
     max_list(Ys, MaxY),
-    build_rows(0, MaxY, MaxX, GameMap, BombState, CharCodes),
+    build_rows(0, MaxY, MaxX, GameMap, PlayerPos, BombState, CharCodes),
     write('\e[H'),
     format('~s', [CharCodes]),
     flush_output.
 
-build_rows(Y, MaxY, _, _, _, []) :- Y > MaxY, !.
+build_rows(Y, MaxY, _, _, _, _, []) :- Y > MaxY, !.
 
-build_rows(Y, MaxY, MaxX, GameMap, BombState, Codes) :-
-    build_cols(0, MaxX, Y, GameMap, BombState, RowCodes),
+build_rows(Y, MaxY, MaxX, GameMap, PlayerPos, BombState, Codes) :-
+    build_cols(0, MaxX, Y, GameMap, PlayerPos, BombState, RowCodes),
     NextY is Y + 1,
-    build_rows(
-        NextY,
-        MaxY,
-        MaxX,
-        GameMap,
-        BombState,
-        RestCodes
-    ),
+    build_rows(NextY, MaxY, MaxX, GameMap, PlayerPos, BombState, RestCodes),
     append(RowCodes, [10 | RestCodes], Codes).
 
-build_cols(X, MaxX, _, _, _, []) :-
+build_cols(X, MaxX, _, _, _, _, []) :-
     X > MaxX,
     !.
 
-build_cols(
-    X,
-    MaxX,
-    Y,
-    GameMap,
-    BombState,
-    [CharCode | Rest]
-) :-
+build_cols(X, MaxX, Y, GameMap, PlayerPos, BombState, [CharCode | Rest]) :-
     (
-        BombState = bomb((X, Y), _)
+        BombState = exploding(Tiles, _),
+        member((X, Y), Tiles)
+    ->
+        Char = '*'
+    ;   BombState = bomb((X, Y), _),
+        (X, Y) \= PlayerPos
     ->
         Char = '●'
-
     ;   member(((X, Y), Tile), GameMap)
     ->
         tile_to_asset(Tile, Char)
-
     ;   Char = ' '
     ),
-
     char_code(Char, CharCode),
-
     NextX is X + 1,
-
-    build_cols(
-        NextX,
-        MaxX,
-        Y,
-        GameMap,
-        BombState,
-        Rest
-    ).
+    build_cols(NextX, MaxX, Y, GameMap, PlayerPos, BombState, Rest).

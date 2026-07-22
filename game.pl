@@ -16,7 +16,7 @@ run_game(GameMap, PlayerPos, BombState) :-
     write(BombState),
     nl,
 
-    draw_map(GameMap, BombState),
+    draw_map(GameMap, PlayerPos, BombState),
 
     write('Use W/A/S/D para mover | B para bomba | Q para sair: '),
     get_single_char(Code),
@@ -56,13 +56,31 @@ run_game(GameMap, PlayerPos, BombState) :-
         tick_bomb(
             TempMap,
             BombState,
+            TempPos,
             NextMap,
             NextBombState
         ),
 
-        run_game(
-            NextMap,
-            TempPos,
-            NextBombState
+        (
+            NextBombState = exploding(_, FinalStatus)
+        ->
+            draw_map(NextMap, TempPos, NextBombState),
+            sleep(0.5),
+            (
+                FinalStatus = game_over
+            ->
+                draw_map(NextMap, TempPos, none),
+                write('Game Over!'),
+                nl
+            ;
+                run_game(NextMap, TempPos, FinalStatus)
+            )
+        ;   NextBombState = game_over
+        ->
+            draw_map(NextMap, TempPos, none),
+            write('Game Over!'),
+            nl
+        ;
+            run_game(NextMap, TempPos, NextBombState)
         )
     ).
