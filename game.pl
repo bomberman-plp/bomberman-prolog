@@ -1,5 +1,5 @@
 :- module(game, [
-    run_game/2
+    run_game/3
 ]).
 
 /*
@@ -8,18 +8,74 @@
 
 :- use_module('./functions/draw/draw.pl').
 :- use_module('./functions/move/move.pl').
+:- use_module('./functions/bomb/bomb.pl').
 
-run_game(GameMap, PlayerPos) :-
-    % 1. Desenha o mapa
-    draw_map(GameMap),
-    % 2. Lê entrada do teclado
-    write('Use W/A/S/D para mover | Q para sair: '),
+run_game(GameMap, PlayerPos, BombState) :-
+    draw_map(GameMap, PlayerPos, BombState),
+
+    write('Use W/A/S/D para mover | B para bomba | Q para sair: '),
     get_single_char(Code),
     char_code(Key, Code),
-    
-    % 3. Trata encerramento ou atualiza e repete
-    (   Key == 'q'
-    ->  nl, write('Jogo encerrado!'), nl
-    ;   move(Key, PlayerPos, GameMap, NextMap-NextPos),
-        run_game(NextMap, NextPos)
+
+    (
+        Key == 'q'
+    ->
+        nl,
+        write('Jogo encerrado!'),
+        nl
+
+    ;   Key == 'b'
+    ->
+        place_player_bomb(
+            PlayerPos,
+            GameMap,
+            BombState,
+            NextMap,
+            NextBombState
+        ),
+
+        run_game(
+            NextMap,
+            PlayerPos,
+            NextBombState
+        )
+
+    ;
+        move(
+            Key,
+            PlayerPos,
+            GameMap,
+            TempMap-TempPos
+        ),
+
+        tick_bomb(
+            TempMap,
+            BombState,
+            TempPos,
+            NextMap,
+            NextBombState
+        ),
+
+        (
+            NextBombState = exploding(_, _, FinalStatus)
+        ->
+            draw_map(NextMap, TempPos, NextBombState),
+            sleep(0.5),
+            (
+                FinalStatus = game_over
+            ->
+                draw_map(NextMap, TempPos, none),
+                write('Game Over!'),
+                nl
+            ;
+                run_game(NextMap, TempPos, FinalStatus)
+            )
+        ;   NextBombState = game_over
+        ->
+            draw_map(NextMap, TempPos, none),
+            write('Game Over!'),
+            nl
+        ;
+            run_game(NextMap, TempPos, NextBombState)
+        )
     ).

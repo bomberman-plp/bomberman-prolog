@@ -1,7 +1,9 @@
 :- module(map_manager, [
     get_tile/3,
     set_tile/4,
-    move_player/5
+    move_player/5,
+    place_bomb_tile/3,
+    remove_bomb/3
 ]).
 
 /*
@@ -43,3 +45,9 @@ move_player(From, To, OldMap, NewMap, success) :-
     get_tile(To, OldMap, empty),
     set_tile(From, empty, OldMap, TempMap),
     set_tile(To, player, TempMap, NewMap).
+
+place_bomb_tile(Pos, OldMap, NewMap) :-
+    set_tile(Pos, bomb, OldMap, NewMap).
+
+remove_bomb(Pos, OldMap, NewMap) :-
+    set_tile(Pos, empty, OldMap, NewMap).
