@@ -11,11 +11,6 @@
 :- use_module('./functions/bomb/bomb.pl').
 
 run_game(GameMap, PlayerPos, BombState) :-
-
-    write('BombState = '),
-    write(BombState),
-    nl,
-
     draw_map(GameMap, PlayerPos, BombState),
 
     write('Use W/A/S/D para mover | B para bomba | Q para sair: '),
@@ -62,7 +57,7 @@ run_game(GameMap, PlayerPos, BombState) :-
         ),
 
         (
-            NextBombState = exploding(_, FinalStatus)
+            NextBombState = exploding(_, _, FinalStatus)
         ->
             draw_map(NextMap, TempPos, NextBombState),
             sleep(0.5),

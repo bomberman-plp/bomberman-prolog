@@ -34,7 +34,7 @@ build_cols(X, MaxX, _, _, _, _, []) :-
 
 build_cols(X, MaxX, Y, GameMap, PlayerPos, BombState, [CharCode | Rest]) :-
     (
-        BombState = exploding(Tiles, _),
+        BombState = exploding(Tiles, _, _),
         member((X, Y), Tiles)
     ->
         Char = '*'

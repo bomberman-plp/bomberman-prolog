@@ -22,21 +22,31 @@ tick_bomb(Map, bomb(Pos, Timer), _, Map, bomb(Pos, NewTimer)) :-
 tick_bomb(Map, bomb(Pos, 1), PlayerPos, NewMap, Status) :-
     explode(Pos, PlayerPos, Map, NewMap, Status).
 
+tick_bomb(Map, exploding(Tiles, N, Status), _, Map, Next) :-
+    N > 1,
+    NewN is N - 1,
+    Next = exploding(Tiles, NewN, Status).
+
+tick_bomb(Map, exploding(_, 1, Status), _, Map, Status).
+
 explode(Pos, PlayerPos, Map, NewMap, Status) :-
     blast_tiles(Pos, Map, Tiles),
     destroy_tiles(Tiles, Map, DestroyedMap),
     (   member(PlayerPos, Tiles)
     ->  set_tile(PlayerPos, empty, DestroyedMap, NewMap),
-        Status = exploding(Tiles, game_over)
+        Status = exploding(Tiles, 3, game_over)
     ;   NewMap = DestroyedMap,
-        Status = exploding(Tiles, none)
+        Status = exploding(Tiles, 3, none)
     ).
 
+blast_range(2).
+
 blast_tiles((X, Y), Map, Tiles) :-
-    blast_dir((X, Y), 1, 0, Map, 2, Right),
-    blast_dir((X, Y), -1, 0, Map, 2, Left),
-    blast_dir((X, Y), 0, 1, Map, 2, Down),
-    blast_dir((X, Y), 0, -1, Map, 2, Up),
+    blast_range(R),
+    blast_dir((X, Y), 1, 0, Map, R, Right),
+    blast_dir((X, Y), -1, 0, Map, R, Left),
+    blast_dir((X, Y), 0, 1, Map, R, Down),
+    blast_dir((X, Y), 0, -1, Map, R, Up),
     append([Right, Left, Down, Up], AllDir),
     Tiles = [(X, Y) | AllDir].
 
